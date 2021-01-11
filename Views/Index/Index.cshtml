@@ -1,0 +1,195 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+<div class="row">
+    <form class="form-horizontal">
+        <legend class="text-center">
+            <h2>Vehículo</h2>
+        </legend>
+
+        <div class="form-group">
+            <label class="col-xs-2 col-xs-offset-3 control-label">MARCA:</label>
+            <div class="col-xs-4">
+                <select id="ListMarca">
+                    <option selected disabled>Eliga una marca</option>
+
+                    @foreach (var m in Model)
+                    {
+                        <option value="@m.iIdMarca">@m.sMarca</option>
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-xs-2 col-xs-offset-3 control-label">SUBMARCA:</label>
+            <div class="col-xs-4">
+                <select id="ListSubmarca">
+                    <option selected disabled>Eliga una Submarca</option>
+
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-xs-2 col-xs-offset-3 control-label">MODELO:</label>
+            <div class="col-xs-4">
+                <select id="ListModelo">
+                    <option selected disabled>Selecciona un modelo</option>
+
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-xs-2 col-xs-offset-3 control-label">DESCRIPCIÓN:</label>
+            <div class="col-xs-4">
+                <select id="ListDescripcion">
+                    <option selected disabled>Selecciona una descripción</option>
+
+                </select>
+            </div>
+        </div>
+        <legend class="text-center">
+            <h2>Domicilio</h2>
+        </legend>
+
+        <div class="form-group">
+            <label class="col-xs-2 col-xs-offset-3 control-label">CÓDIGO POSTAL:</label>
+            <div class="col-xs-4">
+                <input id="CodPostal" type="number" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-xs-2 col-xs-offset-3 control-label">ESTADO:</label>
+            <div class="col-xs-4">
+                <input id="Estado" type="text" readonly>
+
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-xs-2 col-xs-offset-3 control-label">MUNICIPIO:</label>
+            <div class="col-xs-4">
+                <input id="Municipio" type="text" readonly />
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-xs-2 col-xs-offset-3 control-label">COLONIA:</label>
+            <div class="col-xs-4">
+                <input id="Colonia" type="text" readonly />
+            </div>
+        </div>
+        <div class="text-center"><input type="button" value="Enviar" id="BttEnviar" class="btn btn-default" /></div>
+                
+    </form>
+    </div>
+    @section scripts{
+        <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+        <script>
+
+        $('#ListMarca').change(function () {
+
+
+            $('#ListSubmarca').html('<option selected disabled>Eliga una Submarca</option>');
+            $('#ListModelo').html('<option selected disabled>Selecciona un módelo</option>');
+            $('#ListDescripcion').html('<option selected disabled>Selecciona una descripción</option>');
+
+
+
+            axios.post('@Url.Content("~/Index/Submarca")', {
+                IdSubMarca: $('#ListMarca').val()
+            }).then(function (res) {
+                if (!res.data.Error) {
+                    const submarcas = res.data;
+                    submarcas.forEach(function (submarca) {
+                        $('#ListSubmarca').append(`<option value='${submarca.iIdSubMarca}'>${submarca.sSubMarca}</option>`);
+                    });
+                }
+
+            });
+        });
+
+        $('#ListSubmarca').change(function () {
+
+
+            $('#ListModelo').html('<option selected disabled>Selecciona un módelo</option>');
+            $('#ListDescripcion').html('<option selected disabled>Selecciona una descripción</option>');
+
+
+            axios.post('@Url.Content("~/Index/Modelo")', {
+                IdModelo: $('#ListSubmarca').val()
+            }).then(function (res) {
+                if (res.data && !res.data.Error) {
+                    const modelo = res.data;
+                    modelo.forEach(function (modelo) {
+                        $('#ListModelo').append(`<option value='${modelo.iIdModelo}'>${modelo.sModelo}</option>`);
+                    });
+                }
+
+            });
+        });
+
+        $('#ListModelo').change(function () {
+
+            $('#ListDescripcion').html('<option selected disabled>Selecciona una descripción</option>');
+
+
+            axios.post('@Url.Content("~/Index/Descripcion")', {
+                IdDescripcion: $('#ListModelo').val()
+            }).then(function (res) {
+                if (!res.data.Error) {
+                    const descripcion = res.data;
+                    descripcion.forEach(function (descripcion) {
+                        $('#ListDescripcion').append(`<option value='${descripcion.iIdDescripcion}'>${descripcion.sDescripcion}</option>`);
+                    });
+                }
+
+            });
+        });
+
+        $('#CodPostal').change(function () {
+            if ($('#CodPostal').val().length == 5) {
+                axios.post('https://apitestcotizamatico.azurewebsites.net/api/catalogos', {
+                    NombreCatalogo: "Sepomex",
+                    Filtro: $('#CodPostal').val(),
+                    IdAplicacion: 2
+                }, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }).then(function (res) {
+
+                    if (!res.data.Error) {
+                        const Datos = JSON.parse(res.data.CatalogoJsonString);
+
+
+                        Datos.forEach(function (Datos) {
+
+                            let Ubicacion = Datos.Ubicacion;
+                            $('#Colonia').val(Ubicacion[0].sUbicacion);
+                            $('#Municipio').val(Datos.Municipio.sMunicipio);
+                            $('#Estado').val(Datos.Municipio.Estado.sEstado);
+
+                        });
+
+                    }
+                });
+            }
+            else {
+
+                $('#Colonia').val("");
+                $('#Municipio').val("");
+                $('#Estado').val("");
+            }
+        });
+
+        $('#BttEnviar').click(function () {
+            if ($('#Colonia').val() && $('#Municipio').val() && $('#Estado').val() && $('#ListMarca').val() && $('#ListSubmarca').val() && $('#ListModelo').val() && $('#ListDescripcion').val()) {
+                alert("Todos los datos estan correctos");
+            }
+            else {
+                alert("Faltan campos por llenar");
+            }
+        });
+
+
+        </script>
+    }
