@@ -30,7 +30,6 @@ namespace EvaluacionSarahi.Controllers
             client.Timeout = -1;
             var request = new RestRequest(Method.POST);
             request.AddHeader("Content-Type", "application/json");
-            //request.AddHeader("Cookie", "ARRAffinity=d5541f6ca74e10bb0f1ff47b61d5cfaf3bae0db9932687c28209801ef63b23d3; ARRAffinitySameSite=d5541f6ca74e10bb0f1ff47b61d5cfaf3bae0db9932687c28209801ef63b23d3");
             request.AddParameter("application/json", "{\r\n    \"NombreCatalogo\": \"" + NombreCatalogo + "\",\r\n    \"Filtro\": \"" + Filtro + "\",\r\n    \"IdAplicacion\": " + IdAplicacion + "\r\n}", ParameterType.RequestBody);
             IRestResponse response = client.Execute(request);
 
